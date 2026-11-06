@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Tủ sách nhỏ để khám phá truyện mới và tận hưởng một không gian đọc thoải mái."
+    />
+    <title>Sách Hay — Tủ sách trực tuyến</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Roboto+Condensed:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#home" data-page="home" aria-label="Sách Hay - Trang chủ">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>sách hay<span class="brand-period">.</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Điều hướng chính">
+        <button class="nav-link is-active" data-page="home">Khám phá</button>
+        <button class="nav-link" data-page="library">Tủ truyện</button>
+        <button class="nav-link" data-page="admin" id="admin-nav" hidden>Quản trị</button>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" id="search-trigger" aria-label="Tìm truyện">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
+          <span>Tìm truyện</span>
+        </button>
+        <div class="notification-wrap">
+          <button class="notification-trigger" id="notification-trigger" aria-label="Thông báo" aria-expanded="false" aria-controls="notification-panel" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>
+            <span class="notification-badge" id="notification-badge" hidden>0</span>
+          </button>
+          <section class="notification-panel" id="notification-panel" aria-label="Thông báo của bạn" hidden>
+            <div class="notification-panel-heading"><strong>Thông báo</strong><button type="button" id="notifications-refresh">Làm mới</button></div>
+            <div class="notification-list" id="notification-list" aria-live="polite"></div>
+          </section>
+        </div>
+        <button class="avatar" id="account-toggle" aria-label="Đăng nhập hoặc tạo tài khoản">K</button>
+      </div>
+    </header>
+    <dialog class="account-dialog" id="account-dialog" aria-labelledby="account-title">
+      <button class="close-settings account-close" id="account-close" aria-label="Đóng">×</button>
+      <p class="eyebrow">CHÀO MỪNG BẠN</p>
+      <h2 id="account-title">Đăng nhập</h2>
+      <p class="account-intro">Đăng nhập để đọc chương truyện và tiếp tục hành trình của bạn.</p>
+      <div class="account-tabs"><button type="button" class="is-selected" data-auth-mode="login">Đăng nhập</button><button type="button" data-auth-mode="register">Tạo tài khoản</button></div>
+      <form id="account-form">
+        <label id="account-name-row" hidden>Tên hiển thị<input name="name" autocomplete="name" maxlength="80" /></label>
+        <label>Email<input name="email" type="email" autocomplete="email" required maxlength="190" /></label>
+        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required minlength="12" maxlength="72" /></label>
+        <p class="account-error" id="account-error" role="alert"></p>
+        <button class="button-primary account-submit" type="submit">Đăng nhập</button>
+      </form>
+      <button class="account-signout" id="account-signout" hidden>Đăng xuất</button>
+      <p class="demo-note account-footnote">Mật khẩu cần tối thiểu 12 ký tự. Đây là bản chạy thử; chỉ dùng dữ liệu tài khoản thử nghiệm.</p>
+    </dialog>
+
+    <main>
+      <section class="page-view is-visible" id="home-view" aria-labelledby="home-title">
+        <div class="home-shell">
+          <section class="welcome-row">
+            <div>
+              <p class="eyebrow" id="today-label"></p>
+              <h1 id="home-title">Một câu chuyện<br /><span>cho hôm nay.</span></h1>
+              <p class="welcome-copy">Ghé qua những thế giới mới, ở lại với những câu chuyện bạn yêu.</p>
+            </div>
+            <div class="shelf-note"><span class="shelf-note-mark">✳</span><span>Một góc nhỏ<br />dành cho người mê truyện.</span></div>
+          </section>
+
+          <form class="search-box" id="search-form" role="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
+            <label class="sr-only" for="story-search">Tìm tên truyện hoặc tác giả</label>
+            <input id="story-search" type="search" placeholder="Tên truyện, tác giả bạn đang tìm..." />
+            <button type="submit">Tìm kiếm</button>
+          </form>
+          <div class="catalog-filters" aria-label="Bộ lọc truyện">
+            <label for="genre-filter">Thể loại<select id="genre-filter"><option value="">Tất cả thể loại</option></select></label>
+            <label for="status-filter">Tình trạng<select id="status-filter"><option value="">Tất cả</option><option value="ongoing">Đang ra</option><option value="completed">Đã hoàn thành</option><option value="paused">Tạm ngưng</option></select></label>
+            <label for="sort-filter">Sắp xếp<select id="sort-filter"><option value="updated">Mới cập nhật</option><option value="popular">Đọc nhiều</option><option value="title">Tên truyện A–Z</option></select></label>
+            <button type="button" class="clear-filters" id="clear-filters">Xóa bộ lọc</button>
+          </div>
+          <p class="catalog-status" id="catalog-status" role="status" aria-live="polite"></p>
+
+          <section class="feature-banner" aria-label="Truyện nổi bật">
+            <div class="feature-art feature-art-main" aria-hidden="true">
+              <span class="art-sun"></span><span class="art-hill art-hill-back"></span><span class="art-hill art-hill-front"></span>
+              <span class="art-stamp">ĐỌC<br />CHẬM</span>
+            </div>
+            <div class="feature-content">
+              <span class="tag tag-light">GÓC BIÊN TẬP</span>
+              <h2 id="feature-title">Mùa gió qua<br />hiên nhà</h2>
+              <p id="feature-description">Có những chuyến đi không cần rời khỏi thành phố. Chỉ cần mở đúng một trang sách.</p>
+              <div class="feature-byline" id="feature-byline">TẠ MINH AN · TẢN VĂN, ĐỜI THƯỜNG</div>
+              <button class="text-button text-button-light" id="feature-link" data-page="detail">Khám phá câu chuyện <span aria-hidden="true">↗</span></button>
+            </div>
+            <div class="feature-index">01 <span>/</span> 03</div>
+          </section>
+
+          <div class="home-columns">
+            <div class="home-main-column">
+              <section class="content-section">
+                <div class="section-heading">
+                  <div><p class="eyebrow">MỚI TRÊN KỆ</p><h2>Vừa cập nhật</h2></div>
+                  <button class="subtle-link" data-page="detail">Xem tất cả <span aria-hidden="true">→</span></button>
+                </div>
+                <div class="book-row" id="book-list">
+                  <article class="book-card" data-search="người giữ vườn lặng yên mai chi huyền huyễn">
+                    <button class="book-cover cover-sage" data-page="detail" aria-label="Xem truyện Người giữ vườn"><span class="cover-kicker">NHỮNG MÙA XA</span><span class="cover-title">Người<br />giữ vườn</span><span class="cover-author">MAI CHI</span><span class="cover-ornament">✳</span></button>
+                    <div class="book-meta"><button class="book-name" data-page="detail">Người giữ vườn</button><span>Mai Chi · Huyền huyễn</span><small>Nội dung mẫu</small></div>
+                  </article>
+                  <article class="book-card" data-search="đi qua phố cũ an nhiên thanh xuân đô thị">
+                    <button class="book-cover cover-rose" data-page="detail" aria-label="Xem truyện Đi qua phố cũ"><span class="cover-kicker">CHUYỆN MỘT NGÀY</span><span class="cover-title">Đi qua<br />phố cũ</span><span class="cover-author">AN NHIÊN</span><span class="cover-ornament">☼</span></button>
+                    <div class="book-meta"><button class="book-name" data-page="detail">Đi qua phố cũ</button><span>An Nhiên · Đô thị</span><small>Nội dung mẫu</small></div>
+                  </article>
+                  <article class="book-card" data-search="bản đồ những vì sao khải nguyên phiêu lưu khoa huyễn">
+                    <button class="book-cover cover-blue" data-page="detail" aria-label="Xem truyện Bản đồ những vì sao"><span class="cover-kicker">TẬP 01 · HÀNH TRÌNH</span><span class="cover-title">Bản đồ<br />những vì sao</span><span class="cover-author">KHẢI NGUYÊN</span><span class="cover-ornament">✳</span></button>
+                    <div class="book-meta"><button class="book-name" data-page="detail">Bản đồ những vì sao</button><span>Khải Nguyên · Phiêu lưu</span><small>Nội dung mẫu</small></div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="content-section updates-section">
+                <div class="section-heading">
+                  <div><p class="eyebrow">CÒN ĐANG VIẾT</p><h2>Chương mới mỗi ngày</h2></div>
+                  <button class="subtle-link" data-page="detail">Xem tất cả <span aria-hidden="true">→</span></button>
+                </div>
+                <div class="update-list" id="update-list">
+                  <button class="update-item" data-page="detail"><span class="update-number">01</span><span class="update-title">Ngày mai, mình gặp lại</span><span class="update-author">Linh Dương</span><span class="update-chapter">Chương minh họa</span><span class="update-time">Mẫu</span></button>
+                  <button class="update-item" data-page="detail"><span class="update-number">02</span><span class="update-title">Người giữ vườn</span><span class="update-author">Mai Chi</span><span class="update-chapter">Chương mẫu: Cánh cửa phía đông</span><span class="update-time">Mẫu</span></button>
+                  <button class="update-item" data-page="detail"><span class="update-number">03</span><span class="update-title">Bản đồ những vì sao</span><span class="update-author">Khải Nguyên</span><span class="update-chapter">Chương mẫu</span><span class="update-time">Mẫu</span></button>
+                </div>
+              </section>
+            </div>
+
+            <aside class="home-sidebar">
+              <section class="ranking-card">
+                <div class="section-heading compact-heading"><div><p class="eyebrow">ĐỌC NHIỀU</p><h2>Được yêu thích</h2></div><span class="sparkle">✳</span></div>
+                <ol class="ranking-list" id="ranking-list">
+                  <li><span class="rank-number">01</span><button data-page="detail"><strong>Tháng năm ở lại</strong><small>Hoài Phương · Tình cảm</small></button></li>
+                  <li><span class="rank-number">02</span><button data-page="detail"><strong>Tiệm sách cuối con đường</strong><small>Bình An · Đời thường</small></button></li>
+                  <li><span class="rank-number">03</span><button data-page="detail"><strong>Người giữ vườn</strong><small>Mai Chi · Huyền huyễn</small></button></li>
+                  <li><span class="rank-number">04</span><button data-page="detail"><strong>Đường về phía bình minh</strong><small>Nam Khê · Phiêu lưu</small></button></li>
+                  <li><span class="rank-number">05</span><button data-page="detail"><strong>Ngày mai, mình gặp lại</strong><small>Linh Dương · Thanh xuân</small></button></li>
+                </ol>
+                <button class="subtle-link ranking-link" data-page="detail">Bảng xếp hạng <span aria-hidden="true">→</span></button>
+              </section>
+              <section class="quote-card"><span class="quote-mark">“</span><blockquote>Một căn phòng không có sách cũng giống như một cơ thể không có linh hồn.</blockquote><cite>— CICERO</cite><span class="quote-sprig">⌁</span></section>
+            </aside>
+          </div>
+          <footer class="site-footer"><span class="footer-attribution">Phạm Hữu Ý &amp; Nguyễn  Lê Hoàng Phúc © 2026</span><span>Một tủ sách nhỏ, mở cửa mỗi ngày.</span><span>BẢN TRÌNH DIỄN · NỘI DUNG MINH HỌA</span></footer>
+        </div>
+      </section>
+
+      <section class="page-view detail-page" id="detail-view" aria-labelledby="detail-title" hidden>
+        <div class="detail-shell">
+          <div class="breadcrumb"><button data-page="home">Khám phá</button><span>/</span><span>Chi tiết truyện</span></div>
+          <div class="detail-layout">
+            <div class="detail-main">
+              <section class="detail-overview">
+                <div class="detail-cover-wrap"><div class="book-cover detail-cover cover-sage"><span class="cover-kicker">NHỮNG MÙA XA</span><span class="cover-title">Người<br />giữ vườn</span><span class="cover-author">MAI CHI</span><span class="cover-ornament">✳</span></div><span class="cover-caption">BẢN ĐỌC MINH HỌA</span></div>
+                <div class="detail-copy">
+                  <p class="eyebrow">HUYỀN HUYỄN · ĐỜI THƯỜNG</p>
+                  <h1 id="detail-title">Người giữ vườn</h1>
+                  <p class="detail-author">Tác giả <strong>Mai Chi</strong></p>
+                  <div class="rating-line">Bản minh họa · Chưa có đánh giá</div>
+                  <div class="detail-tags"><span>Chậm rãi</span><span>Chữa lành</span><span>Thế giới khác</span></div>
+                  <p class="detail-description">Ở cuối con đường lát đá có một khu vườn chẳng hiện trên bất kỳ tấm bản đồ nào. Lam nhận việc chăm nom nơi ấy, cùng một lời dặn duy nhất: mỗi khi một bông hoa nở, hãy lắng nghe câu chuyện mà nó mang theo.</p>
+                  <p class="detail-description detail-description-second">Một câu chuyện nhỏ về những điều ta tưởng đã quên, những cuộc gặp gỡ dịu dàng và can đảm để bắt đầu lại. <em>Nội dung giới thiệu và truyện trong trang này là văn bản minh họa.</em></p>
+                  <div class="detail-actions"><button class="button-primary" data-page="reader">Đọc từ đầu <span aria-hidden="true">→</span></button><button class="button-secondary" id="save-story">＋ <span>Lưu vào kệ</span></button><button class="button-secondary" id="share-story">↗ <span>Chia sẻ</span></button></div>
+                  <p class="demo-note" id="save-note" aria-live="polite">Đăng nhập để lưu truyện vào kệ cá nhân.</p>
+                  <div class="story-facts"><span><small>TÌNH TRẠNG</small><strong>Đang ra</strong></span><span><small>SỐ CHƯƠNG</small><strong>Chương mẫu</strong></span><span><small>CẬP NHẬT</small><strong>Bản minh họa</strong></span></div>
+                </div>
+              </section>
+              <section class="chapter-section">
+                <div class="chapter-heading"><div><p class="eyebrow">MỞ SÁCH RA</p><h2>Danh sách chương</h2></div><span class="chapter-count">Chương mẫu <span aria-hidden="true">⌄</span></span></div>
+                <div class="chapter-list">
+                  <button class="chapter-item" data-page="reader"><span><small>CHƯƠNG MẪU</small><strong>Cánh cửa phía đông</strong></span><time>Nội dung mẫu</time><span class="chapter-arrow">→</span></button>
+                </div>
+                <button class="more-chapters" id="more-chapters">Xem thêm chương <span aria-hidden="true">⌄</span></button>
+              </section>
+              <section class="chapter-submit-section" id="chapter-submit-section" hidden>
+                <div class="section-heading"><div><p class="eyebrow">DÀNH CHO CHỦ TRUYỆN</p><h2>Gửi chương mới</h2></div></div>
+                <form id="chapter-submit-form" class="chapter-submit-form">
+                  <label for="chapter-submit-title">Tiêu đề chương</label>
+                  <input id="chapter-submit-title" name="title" maxlength="240" required />
+                  <label for="chapter-submit-content">Nội dung</label>
+                  <textarea id="chapter-submit-content" name="content" rows="12" maxlength="1000000" required></textarea>
+                  <p class="demo-note">Chương dài sẽ tự chia ở ranh giới đoạn văn (mốc hiện tại khoảng 7.000 từ mỗi phần). Bản gửi sẽ ẩn cho đến khi được duyệt.</p>
+                  <p class="chapter-submit-status" id="chapter-submit-status" role="status" aria-live="polite"></p>
+                  <button type="submit" class="button-primary">Gửi kiểm duyệt</button>
+                </form>
+              </section>
+              <section class="community-section">
+                <div class="section-heading"><div><p class="eyebrow">CÙNG CHIA SẺ</p><h2>Góc bạn đọc</h2></div></div>
+                <div class="community-actions">
+                  <button type="button" class="button-secondary" id="follow-story" aria-pressed="false">Theo dõi truyện</button>
+                  <button type="button" class="button-secondary" data-reaction="like" aria-pressed="false">Thích <span id="like-count">0</span></button>
+                  <button type="button" class="button-secondary" data-reaction="love" aria-pressed="false">Yêu thích <span id="love-count">0</span></button>
+                  <button type="button" class="text-button report-trigger" id="report-story">Báo cáo vi phạm</button>
+                </div>
+                <div class="comment-area">
+                  <h3>Bình luận</h3>
+                  <form id="comment-form">
+                    <label class="sr-only" for="comment-body">Viết bình luận</label>
+                    <textarea id="comment-body" name="body" maxlength="1000" rows="3" placeholder="Chia sẻ cảm nhận của bạn..." required></textarea>
+                    <div class="comment-submit-row"><span>Đăng nhập để gửi bình luận · tối đa 1.000 ký tự</span><button type="submit" class="button-primary">Gửi bình luận</button></div>
+                  </form>
+                  <div class="comment-list" id="comment-list" aria-live="polite"></div>
+                  <p class="community-empty" id="comments-empty" hidden>Chưa có bình luận nào. Hãy mở đầu cuộc trò chuyện.</p>
+                </div>
+              </section>
+            </div>
+            <aside class="detail-aside">
+              <section class="aside-card author-card"><p class="eyebrow">CÙNG TÁC GIẢ</p><div class="author-avatar">MC</div><h3>Mai Chi</h3><p>Viết những câu chuyện dành cho ngày mưa.</p><div class="author-work"><span class="mini-cover cover-rose">Mùa<br />trở gió</span><span><strong>Mùa trở gió</strong><small>Truyện ngắn · 8 chương</small></span></div><div class="author-work"><span class="mini-cover cover-blue">Bên<br />kia đồi</span><span><strong>Bên kia đồi</strong><small>Đời thường · 12 chương</small></span></div></section>
+              <section class="aside-card aside-ranking"><p class="eyebrow">TRUYỆN ĐANG ĐƯỢC ĐỌC</p><ol><li><b>01</b><span>Tháng năm ở lại<small>Hoài Phương</small></span></li><li><b>02</b><span>Tiệm sách cuối con đường<small>Bình An</small></span></li><li><b>03</b><span>Ngày mai, mình gặp lại<small>Linh Dương</small></span></li></ol></section>
+              <p class="demo-note">Tác phẩm và số liệu đều là nội dung minh họa, không lấy từ dịch vụ bên ngoài.</p>
+            </aside>
+          </div>
+          <footer class="site-footer"><span class="footer-attribution">Phạm Hữu Ý &amp; Nguyễn  Lê Hoàng Phúc © 2026</span><button data-page="home">← Quay lại khám phá</button><span>BẢN TRÌNH DIỄN · NỘI DUNG MINH HỌA</span></footer>
+        </div>
+      </section>
+
+      <section class="page-view admin-page" id="admin-view" aria-labelledby="admin-title" hidden>
+        <div class="home-shell admin-shell">
+          <div class="breadcrumb"><button data-page="home">Khám phá</button><span>/</span><span>Quản trị</span></div>
+          <p class="eyebrow">ĐIỀU HÀNH NỘI DUNG</p>
+          <h1 id="admin-title">Trung tâm quản trị</h1>
+          <div class="admin-metrics" id="admin-metrics"></div>
+          <div class="admin-tabs" role="tablist" aria-label="Hàng chờ quản trị">
+            <button type="button" class="is-selected" data-admin-queue="books">Quản lý truyện</button>
+            <button type="button" data-admin-queue="chapters">Kiểm duyệt chương</button>
+            <button type="button" data-admin-queue="reports">Báo cáo</button>
+            <button type="button" data-admin-queue="comments">Bình luận</button>
+            <button type="button" data-admin-queue="users" id="admin-users-tab" hidden>Tài khoản</button>
+          </div>
+          <p class="admin-queue-status" id="admin-queue-status" role="status" aria-live="polite"></p>
+          <div class="admin-queue" id="admin-queue"></div>
+          <p class="demo-note">Thao tác quản trị được kiểm tra quyền ở máy chủ và ghi vào nhật ký.</p>
+        </div>
+      </section>
+
+      <section class="page-view library-page" id="library-view" aria-labelledby="library-title" hidden>
+        <div class="home-shell personal-library">
+          <div class="breadcrumb"><button data-page="home">Khám phá</button><span>/</span><span>Tủ truyện của tôi</span></div>
+          <p class="eyebrow">GÓC RIÊNG CỦA BẠN</p>
+          <h1 id="library-title">Tủ truyện</h1>
+          <p class="library-intro">Theo dõi những trang sách bạn đã mở và lưu lại câu chuyện muốn đọc sau.</p>
+          <div class="library-signin" id="library-signin" hidden>
+            <p>Đăng nhập để xem tủ truyện và lịch sử đọc được lưu theo tài khoản.</p>
+            <button type="button" class="button-primary" id="library-signin-button">Đăng nhập</button>
+          </div>
+          <section class="content-section import-section" id="import-section">
+            <div class="section-heading"><div><p class="eyebrow">GỬI TÁC PHẨM</p><h2>Nhập truyện để xét duyệt</h2></div></div>
+            <form class="import-form" id="import-form">
+              <label>Tên truyện<input name="title" maxlength="240" required minlength="3" /></label>
+              <label>Tác giả<input name="author" maxlength="160" required minlength="2" /></label>
+              <label>Thể loại<select id="import-genre" name="genre" required><option value="">Chọn thể loại</option></select></label>
+              <label class="import-description">Giới thiệu<textarea name="description" rows="3" maxlength="5000"></textarea></label>
+              <label class="import-file">Tệp truyện <span>TXT, DOCX hoặc PDF · tối đa 15 MB</span><input name="file" type="file" accept=".txt,.docx,.pdf" required /></label>
+              <p class="import-error" id="import-error" role="alert"></p>
+              <button type="submit" class="button-primary">Tải lên để xử lý</button>
+            </form>
+            <div class="import-jobs" id="import-jobs"></div>
+            <p class="demo-note">Tệp được lưu ngoài thư mục web và tác phẩm ở trạng thái riêng tư cho đến khi được duyệt.</p>
+          </section>
+          <section class="content-section library-section">
+            <div class="section-heading"><div><p class="eyebrow">TIẾP TỤC HÀNH TRÌNH</p><h2>Đọc gần đây</h2></div></div>
+            <div class="reading-history-list" id="reading-history-list"></div>
+            <p class="library-empty" id="history-empty" hidden>Bạn chưa có lịch sử đọc. Hãy mở một chương truyện để bắt đầu.</p>
+          </section>
+          <section class="content-section library-section">
+            <div class="section-heading"><div><p class="eyebrow">ĐỂ DÀNH CHO LẦN SAU</p><h2>Truyện đã lưu</h2></div></div>
+            <div class="book-row library-book-row" id="library-books"></div>
+            <p class="library-empty" id="library-empty" hidden>Kệ sách đang trống. Bạn có thể lưu truyện từ trang chi tiết.</p>
+          </section>
+          <p class="library-status" id="library-status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="page-view reader-page" id="reader-view" aria-labelledby="reader-title" hidden>
+        <div class="reader-topbar"><button class="reader-back" data-page="detail">← <span>Chi tiết truyện</span></button><div class="reader-book">BẢN ĐỌC MINH HỌA</div><button class="reader-progress" aria-label="Tiến độ đọc chưa có dữ liệu"><span></span></button></div>
+        <article class="reader-article" id="reader-article">
+          <div class="reader-chapter-label">NHỮNG MÙA XA · MAI CHI</div>
+          <button type="button" class="text-button report-trigger reader-report-trigger" id="report-chapter">Báo cáo chương này</button>
+          <h1 id="reader-title">Nội dung chương</h1>
+          <div class="reader-divider"><span>✳</span></div>
+          <p class="chapter-intro">Đăng nhập để mở nội dung chương.</p>
+          <p class="reader-endnote">— Hết chương —</p>
+          <nav class="chapter-navigation" aria-label="Điều hướng chương"><button disabled>← Chương trước</button><button data-page="detail">Danh sách chương</button><button>Chương tiếp →</button></nav>
+          <p class="demo-note reader-disclaimer">Nội dung chương là mẫu; tiến độ đọc được lưu theo tài khoản.</p>
+        </article>
+        <button class="settings-fab" id="settings-toggle" aria-label="Mở cài đặt đọc" aria-expanded="false" aria-controls="reader-settings">Aa</button>
+        <aside class="settings-panel" id="reader-settings" aria-label="Cài đặt đọc" hidden>
+          <div class="settings-heading"><div><p class="eyebrow">KHÔNG GIAN CỦA BẠN</p><h2>Cài đặt đọc</h2></div><button class="close-settings" id="settings-close" aria-label="Đóng cài đặt">×</button></div>
+          <fieldset class="setting-group"><legend>Nền trang</legend><div class="swatch-row">
+            <button class="swatch swatch-paper" data-preset="paper" aria-label="Nền giấy sáng" title="Giấy sáng"></button>
+            <button class="swatch swatch-warm" data-preset="warm" aria-label="Nền giấy ấm" title="Giấy ấm"></button>
+            <button class="swatch swatch-sage" data-preset="sage" aria-label="Nền xanh dịu" title="Xanh dịu"></button>
+            <button class="swatch swatch-night" data-preset="night" aria-label="Nền tối" title="Tối"></button>
+            <label class="color-picker-label" title="Chọn màu nền tùy chỉnh"><span aria-hidden="true">＋</span><input id="background-color" type="color" aria-label="Màu nền tùy chỉnh" /></label>
+          </div></fieldset>
+          <div class="setting-row"><label for="text-color">Màu chữ</label><input id="text-color" type="color" aria-label="Chọn màu chữ tùy chỉnh" /></div>
+          <div class="setting-row"><label for="font-family">Phông chữ</label><select id="font-family"><option value="literata">Literata</option><option value="be-vietnam">Be Vietnam Pro</option><option value="serif">Serif hệ thống</option><option value="sans">Sans-serif hệ thống</option></select></div>
+          <div class="setting-row"><label for="font-size">Cỡ chữ</label><div class="range-control"><button data-adjust="fontSize" data-step="-1" aria-label="Giảm cỡ chữ">−</button><input id="font-size" type="range" /><output id="font-size-value" class="range-value" for="font-size">19 px</output><button data-adjust="fontSize" data-step="1" aria-label="Tăng cỡ chữ">＋</button></div></div>
+          <div class="setting-row"><label for="line-height">Khoảng dòng</label><div class="range-control"><button data-adjust="lineHeight" data-step="-0.1" aria-label="Giảm khoảng dòng">−</button><input id="line-height" type="range" /><output id="line-height-value" class="range-value" for="line-height">1.9</output><button data-adjust="lineHeight" data-step="0.1" aria-label="Tăng khoảng dòng">＋</button></div></div>
+          <div class="setting-row"><label for="reading-width">Lề đọc</label><div class="range-control"><input id="reading-width" type="range" /><output id="reading-width-value" class="range-value" for="reading-width">12 px</output></div></div>
+          <fieldset class="setting-group alignment-group"><legend>Căn chữ</legend><div class="segmented-control"><button data-align="left">Trái</button><button data-align="justify">Đều</button></div></fieldset>
+          <div class="setting-row"><label for="text-shadow">Bóng chữ nhẹ</label><input id="text-shadow" type="checkbox" class="toggle-input" /></div>
+          <div class="setting-row theme-row"><span>Giao diện</span><div class="segmented-control theme-control"><button data-theme="light">Sáng</button><button data-theme="dark">Tối</button><button data-theme="system">Hệ thống</button></div></div>
+          <button class="reset-settings" id="reset-settings">Khôi phục mặc định</button>
+          <p class="settings-footnote">Tùy chỉnh chỉ lưu trên thiết bị này. Phạm vi thanh trượt hiện là giá trị bản nháp và có thể thay đổi.</p>
+        </aside>
+      </section>
+    </main>
+    <dialog class="report-dialog" id="report-dialog" aria-labelledby="report-title">
+      <button type="button" class="close-settings account-close" id="report-close" aria-label="Đóng">×</button>
+      <p class="eyebrow">GIỮ KHÔNG GIAN AN TOÀN</p>
+      <h2 id="report-title">Báo cáo truyện</h2>
+      <p class="report-intro">Báo cáo sẽ được gửi để đội ngũ quản trị xem xét.</p>
+      <form id="report-form">
+        <label for="report-reason">Lý do<select id="report-reason" name="reason" required><option value="copyright">Vi phạm bản quyền</option><option value="spam">Spam hoặc quảng cáo</option><option value="abuse">Nội dung gây hại</option><option value="other">Lý do khác</option></select></label>
+        <label for="report-details">Thông tin bổ sung<textarea id="report-details" name="details" maxlength="1000" rows="4" placeholder="Mô tả ngắn gọn (không bắt buộc)"></textarea></label>
+        <p class="account-error" id="report-error" role="alert"></p>
+        <div class="report-actions"><button type="button" class="button-secondary" id="report-cancel">Hủy</button><button type="submit" class="button-primary">Gửi báo cáo</button></div>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

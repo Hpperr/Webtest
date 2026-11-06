@@ -1,0 +1,25 @@
+{
+  "name": "trang-thu/story-library",
+  "description": "Vietnamese story reading platform",
+  "type": "project",
+  "require": {
+    "php": "^8.2",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-zip": "*",
+    "ext-fileinfo": "*",
+    "ext-dom": "*",
+    "smalot/pdfparser": "^2.11"
+  },
+  "autoload": {
+    "psr-4": {
+      "TrangThu\\": "app/"
+    }
+  },
+  "scripts": {
+    "serve": "php -S 127.0.0.1:8000 -t public router.php",
+    "test": "php tests/run.php"
+  }
+}
