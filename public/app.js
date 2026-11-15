@@ -52,10 +52,6 @@ let progressSaveTimer = null;
 let lastSavedProgress = -1;
 let currentAdminQueue = "books";
 let authMode = "login";
-let realtimeSource = null;
-let realtimeRetryTimer = null;
-let realtimeRefreshTimer = null;
-let realtimeRetryDelay = 5000;
 
 function readPreferences() {
   try {
@@ -164,55 +160,6 @@ async function loadNotifications() {
   } catch (error) {
     const list = document.getElementById("notification-list");
     list.replaceChildren(createTextElement("p", "notification-empty", error.message || "Không thể tải thông báo."));
-  }
-}
-
-function stopRealtimeNotifications() {
-  clearTimeout(realtimeRetryTimer);
-  clearTimeout(realtimeRefreshTimer);
-  realtimeRetryTimer = null;
-  realtimeRefreshTimer = null;
-  if (realtimeSource) realtimeSource.close();
-  realtimeSource = null;
-}
-
-function scheduleRealtimeReconnect() {
-  if (!currentUser || realtimeRetryTimer) return;
-  const delay = realtimeRetryDelay;
-  realtimeRetryDelay = Math.min(60000, realtimeRetryDelay * 2);
-  realtimeRetryTimer = setTimeout(() => {
-    realtimeRetryTimer = null;
-    connectRealtimeNotifications();
-  }, delay);
-}
-
-async function connectRealtimeNotifications() {
-  if (!currentUser) return;
-  stopRealtimeNotifications();
-  try {
-    const connection = await apiRequest("/api/realtime-token");
-    if (!currentUser) return;
-    const endpoint = `${connection.realtime_url.replace(/\/$/, "")}/events?token=${encodeURIComponent(connection.token)}`;
-    const source = new EventSource(endpoint);
-    realtimeSource = source;
-    source.addEventListener("open", () => { realtimeRetryDelay = 5000; });
-    source.addEventListener("notification", () => {
-      loadNotifications();
-      showToast("Bạn vừa nhận được thông báo mới.");
-    });
-    source.onerror = () => {
-      source.close();
-      if (realtimeSource === source) realtimeSource = null;
-      scheduleRealtimeReconnect();
-    };
-    realtimeRefreshTimer = setTimeout(() => {
-      source.close();
-      if (realtimeSource === source) realtimeSource = null;
-      connectRealtimeNotifications();
-    }, Math.max(1000, connection.expires_at * 1000 - Date.now() - 5000));
-  } catch (error) {
-    console.warn("[Notifications] Realtime connection is unavailable.", error);
-    scheduleRealtimeReconnect();
   }
 }
 
@@ -357,7 +304,7 @@ async function loadAdminPage() {
     const container = document.getElementById("admin-metrics");
     container.replaceChildren(...labels.map(([key, label]) => {
       const card = document.createElement("article");
-      card.className = "admin-metric";
+      card.className = "admin-metric col";
       card.append(
         createTextElement("strong", "", Number(metrics[key]).toLocaleString("vi")),
         createTextElement("span", "", label),
@@ -454,6 +401,7 @@ function renderAdminItem(item, queue) {
 
 function createUserSelect(user, field, values) {
   const select = document.createElement("select");
+  select.className = "form-select";
   select.dataset.userId = user.id;
   select.dataset.userField = field;
   values.forEach((value) => select.add(new Option(value, value, value === user[field], value === user[field])));
@@ -462,7 +410,7 @@ function createUserSelect(user, field, values) {
 }
 
 function createAdminAction(label, target, id, action) {
-  const button = createTextElement("button", "", label);
+  const button = createTextElement("button", "btn btn-sm btn-outline-success", label);
   button.type = "button";
   button.dataset.adminTarget = target;
   button.dataset.adminId = id;
@@ -775,6 +723,7 @@ function navigateTo(page) {
   closeSettings();
   history.replaceState(null, "", `#${page}`);
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (currentUser) loadNotifications();
 }
 
 function closeSettings() {
@@ -813,7 +762,7 @@ function createTextElement(tag, className, text) {
 function createBookCard(book, index) {
   const palettes = ["cover-sage", "cover-rose", "cover-blue"];
   const card = document.createElement("article");
-  card.className = "book-card";
+  card.className = "book-card col";
   const cover = document.createElement("button");
   cover.className = `book-cover ${palettes[index % palettes.length]}`;
   cover.dataset.page = "detail";
@@ -1183,13 +1132,11 @@ async function loadSession() {
     updateAccountUI();
     if (currentUser) {
       loadNotifications();
-      connectRealtimeNotifications();
     }
   } catch {
     currentUser = null;
     sessionLoaded = true;
     updateAccountUI();
-    stopRealtimeNotifications();
   }
 }
 
@@ -1204,7 +1151,6 @@ function updateAccountUI() {
   document.getElementById("account-signout").hidden = !currentUser;
   notificationsToggle.hidden = !currentUser;
   if (!currentUser) {
-    stopRealtimeNotifications();
     document.getElementById("notification-panel").hidden = true;
     document.getElementById("notification-trigger").setAttribute("aria-expanded", "false");
     document.getElementById("notification-badge").hidden = true;
@@ -1251,7 +1197,6 @@ document.getElementById("account-form").addEventListener("submit", async (event)
     csrfToken = result.csrf_token;
     updateAccountUI();
     loadNotifications();
-    connectRealtimeNotifications();
     document.getElementById("account-dialog").close();
     if (pendingChapterId) {
       const chapterId = pendingChapterId;
@@ -1273,7 +1218,6 @@ document.getElementById("account-signout").addEventListener("click", async () =>
     await apiRequest("/api/auth/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
     currentUser = null;
     csrfToken = "";
-    stopRealtimeNotifications();
     document.getElementById("notification-panel").hidden = true;
     document.getElementById("notification-trigger").setAttribute("aria-expanded", "false");
     pendingChapterId = null;
@@ -1358,11 +1302,10 @@ document.getElementById("search-trigger").addEventListener("click", () => {
   navigateTo("home");
   document.getElementById("story-search").focus();
 });
-document.getElementById("notification-trigger").addEventListener("click", async (event) => {
+document.getElementById("notification-trigger").addEventListener("click", (event) => {
   const panel = document.getElementById("notification-panel");
   panel.hidden = !panel.hidden;
   event.currentTarget.setAttribute("aria-expanded", String(!panel.hidden));
-  if (!panel.hidden) await loadNotifications();
 });
 document.getElementById("notifications-refresh").addEventListener("click", loadNotifications);
 document.getElementById("notification-list").addEventListener("click", async (event) => {

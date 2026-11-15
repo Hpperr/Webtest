@@ -34,7 +34,6 @@ $files = [
     'app/Import/ChapterSplitter.php',
     'app/Import/ImportController.php',
     'app/workers/import-worker.php',
-    'app/workers/notification-outbox-worker.php',
     'public/api.php',
     'router.php',
 ];

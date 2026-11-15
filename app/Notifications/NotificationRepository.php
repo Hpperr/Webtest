@@ -19,18 +19,6 @@ final class NotificationRepository
             'INSERT INTO notifications (user_id, type, payload) VALUES (:user_id, :type, :payload)'
         );
         $notification->execute(['user_id' => $userId, 'type' => $type, 'payload' => $json]);
-        $notificationId = (int) $this->db->lastInsertId();
-
-        $outbox = $this->db->prepare(
-            "INSERT INTO notification_outbox (notification_id, user_id, event_type, payload, status) "
-            . "VALUES (:notification_id, :user_id, :event_type, :payload, 'queued')"
-        );
-        $outbox->execute([
-            'notification_id' => $notificationId,
-            'user_id' => $userId,
-            'event_type' => $type,
-            'payload' => $json,
-        ]);
     }
 
     public function createForFollowers(int $bookId, int $ownerId, string $type, array $payload): void
@@ -76,60 +64,5 @@ final class NotificationRepository
         $update->execute(['id' => $notificationId, 'user_id' => $userId]);
 
         return true;
-    }
-
-    public function claimNext(): ?array
-    {
-        $this->db->beginTransaction();
-        try {
-            $job = $this->db->query(
-                "SELECT id, user_id, event_type, payload, attempts FROM notification_outbox "
-                . "WHERE (status = 'queued' AND available_at <= CURRENT_TIMESTAMP) "
-                . "OR (status = 'processing' AND updated_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 10 MINUTE)) "
-                . 'ORDER BY id ASC LIMIT 1 FOR UPDATE'
-            )->fetch();
-            if (!is_array($job)) {
-                $this->db->commit();
-                return null;
-            }
-            $statement = $this->db->prepare(
-                "UPDATE notification_outbox SET status = 'processing', attempts = attempts + 1 WHERE id = :id"
-            );
-            $statement->execute(['id' => $job['id']]);
-            $this->db->commit();
-            $job['attempts'] = (int) $job['attempts'] + 1;
-            $job['payload'] = json_decode($job['payload'], true, 512, JSON_THROW_ON_ERROR);
-
-            return $job;
-        } catch (\Throwable $error) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            throw $error;
-        }
-    }
-
-    public function markSent(int $id): void
-    {
-        $statement = $this->db->prepare(
-            "UPDATE notification_outbox SET status = 'sent', sent_at = CURRENT_TIMESTAMP, last_error = NULL "
-            . "WHERE id = :id AND status = 'processing'"
-        );
-        $statement->execute(['id' => $id]);
-    }
-
-    public function retry(int $id, int $attempts, string $error): void
-    {
-        $status = $attempts >= 8 ? 'failed' : 'queued';
-        $delay = min(3600, 15 * (2 ** min(8, max(0, $attempts - 1))));
-        $statement = $this->db->prepare(
-            'UPDATE notification_outbox SET status = :status, available_at = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL :delay SECOND), '
-            . 'last_error = :error WHERE id = :id AND status = \'processing\''
-        );
-        $statement->bindValue(':status', $status);
-        $statement->bindValue(':delay', $delay, PDO::PARAM_INT);
-        $statement->bindValue(':error', mb_substr($error, 0, 500));
-        $statement->bindValue(':id', $id, PDO::PARAM_INT);
-        $statement->execute();
     }
 }

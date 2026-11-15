@@ -47,10 +47,6 @@ if ($path === '/api/auth/login' && $method === 'POST') {
 if ($path === '/api/auth/logout' && $method === 'POST') {
     $auth->logout();
 }
-if ($path === '/api/realtime-token' && $method === 'GET') {
-    $auth->realtimeToken();
-}
-
 $books = new BookController(new BookRepository(Database::connection()));
 $chapterSubmissions = new ChapterSubmissionController(new ChapterSubmissionRepository(Database::connection()));
 $library = new LibraryController(new LibraryRepository(Database::connection()));

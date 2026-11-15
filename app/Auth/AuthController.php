@@ -107,34 +107,6 @@ final class AuthController
         Response::json(['data' => ['logged_out' => true]]);
     }
 
-    public function realtimeToken(): never
-    {
-        $user = Auth::requireUser();
-        $secret = Config::get('APP_KEY');
-        if (strlen($secret) < 32) {
-            Response::json(['error' => ['code' => 'realtime_unavailable', 'message' => 'Dịch vụ thông báo chưa được cấu hình.']], 503);
-        }
-
-        $now = time();
-        $expiresAt = $now + min(600, max(60, (int) Config::get('REALTIME_TOKEN_TTL', '300')));
-        $encode = static fn (array $value): string => rtrim(strtr(base64_encode(json_encode($value, JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
-        $header = $encode(['alg' => 'HS256', 'typ' => 'JWT']);
-        $payload = $encode([
-            'sub' => (int) $user['id'],
-            'role' => $user['role'],
-            'iat' => $now,
-            'exp' => $expiresAt,
-        ]);
-        $content = $header . '.' . $payload;
-        $signature = hash_hmac('sha256', $content, $secret, true);
-        $token = $content . '.' . rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
-        Response::json(['data' => [
-            'token' => $token,
-            'expires_at' => $expiresAt,
-            'realtime_url' => Config::get('REALTIME_URL', 'http://127.0.0.1:3100'),
-        ]]);
-    }
-
     private function loginIdentity(string $email): string
     {
         return hash_hmac('sha256', $email . "\0" . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'), Config::get('APP_KEY'));
